@@ -1,19 +1,5 @@
 <template>
   <div class="wrapper">
-    <div class="tiles" v-if="gameOn">
-      <button
-        v-for="(tile, index) in tiles"
-        :value="index"
-        :key="tile"
-        @click="catchRound"
-        :class="[{ selected: active == tile }, tile]"
-        class="square"
-        :style="{ background: tile }"
-      ></button>
-    </div>
-
-    <h1 v-if="gameOver">ИГРА ОКОНЧЕНА</h1>
-    <button class="start" @click="startGame">Начать</button>
     <div class="difficult">
       <h2>Сложность</h2>
       <input type="radio" value="1500" v-model="timer" />
@@ -22,6 +8,21 @@
       <span>Средний</span>
       <input type="radio" value="400" v-model="timer" />
       <span>Сложный</span>
+
+      <button class="start" @click="startGame">Начать</button>
+      <h1 v-if="gameOver">ИГРА ОКОНЧЕНА</h1>
+    </div>
+
+    <div class="tiles" v-if="gameOn">
+      <button
+        v-for="(tile, index) in tiles"
+        :value="index"
+        :key="tile"
+        @click="checkRound"
+        :class="[{ selected: active == tile }, tile]"
+        class="square"
+        :style="{ background: tile }"
+      ></button>
     </div>
   </div>
 </template>
@@ -49,25 +50,23 @@ export default {
       this.gameRound = [];
       this.userRound = [];
       this.level = 0;
-      this.round();
+      setTimeout(() => {
+        this.round();
+      }, 500);
     },
     round() {
       this.generateRound();
       this.userRound = [];
       let i = 0;
-      let around = this;
-      this.show(i);
-      setTimeout(function () {
-        around.active = "";
-      }, +around.timer * around.level);
+      setTimeout(() => {
+        this.show(i);
+      }, 500);
     },
     generateRound() {
       this.gameRound.push(Math.floor(Math.random() * 4));
       this.level++;
     },
     show(i) {
-      let around = this;
-      this.active = "";
       switch (this.gameRound[i]) {
         case 0:
           this.active = "red";
@@ -83,26 +82,26 @@ export default {
           break;
       }
       i++;
-      setTimeout(function () {
-        if (i < around.level) {
-          around.show(i);
-        }
-      }, +around.timer);
+      setTimeout(() => {
+        this.active = "";
+      }, +this.timer);
+      if (i < this.level) {
+        setTimeout(() => {
+          this.show(i);
+        }, +this.timer + 300);
+      }
     },
-    catchRound(event) {
+    checkRound(event) {
       this.userRound.push(+event.target.value);
-      if (this.gameRound.length == this.userRound.length) {
-        this.checkRound();
+      if (
+        this.gameRound[this.userRound.length - 1] ==
+        this.userRound[this.userRound.length - 1]
+      ) {
+        if (this.userRound.length == this.level) this.round();
+      } else {
+        this.gameOver = true;
+        this.gameOn = false;
       }
-    },
-    checkRound() {
-      for (let i = 0; i <= this.userRound.length; i++) {
-        if (this.gameRound[i] !== this.userRound[i]) {
-          this.gameOver = true;
-          this.gameOn = false;
-        }
-      }
-      this.round();
     },
   },
 };
@@ -122,22 +121,24 @@ h1 {
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
-  width: 500px;
-  height: 500px;
+  max-width: 500px;
+  height: 100%;
   margin: 0 auto;
 }
 .square {
   width: 40%;
   height: 40%;
+  opacity: 0.7;
   border: black 3px solid;
   border-radius: 10px;
+  padding-bottom: 40%;
 }
 .start {
   display: block;
   width: 150px;
   height: 40px;
   font-size: 24px;
-  margin: 0 auto;
+  margin: 50px auto;
 }
 .difficult {
   text-align: center;
@@ -147,8 +148,8 @@ span {
 }
 .selected,
 .square:active {
-  opacity: 0.3;
+  opacity: 1;
   border: white 3px solid;
-  box-shadow: 0 0 5px red;
+  box-shadow: 0 0 10px red;
 }
 </style>
